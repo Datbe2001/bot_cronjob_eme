@@ -1,0 +1,5 @@
+# curl  http://localhost:8001/v1/user/test
+GET https://emagiceyes.rainscales.com/api/v1/system/logs_system
+
+### local
+

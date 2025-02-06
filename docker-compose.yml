@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  redis:
+    container_name: "redis"
+    restart: always
+    image: redis
+    ports:
+      - "6380:6379"
+
+  web:
+    container_name: "cron_job_eme"
+    environment:
+      - DEBUG=true
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - URL_API=http://0.0.0.0:8000
+      - EMAIL_HOST=mail.rainscales.com.vn
+      - EMAIL_HOST_PASSWORD=Support@12345
+      - EMAIL_HOST_USER=support.emagiceyes@rainscales.com.vn
+      - EMAIL_PORT=587
+
+    build: .
+
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  celery:
+    container_name: "celery"
+    restart: always
+    build: .
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - URL_API=https://datdev.io.vn
+      - EMAIL_HOST=mail.rainscales.com.vn
+      - EMAIL_HOST_PASSWORD=Support@12345
+      - EMAIL_HOST_USER=support.emagiceyes@rainscales.com.vn
+      - EMAIL_PORT=587
+    command: celery -A app.gateway.celery_worker:celery_instance worker --beat --loglevel=info
